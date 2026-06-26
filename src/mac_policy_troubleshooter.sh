@@ -52,7 +52,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 csv_message() {
   local framework="$1"
   local message="$2"
-  message="${message//"/""}"
+  message="${message//\"/\"\"}"
   printf '"%s","%s"\n' "$framework" "$message" >> "$CSV"
 }
 

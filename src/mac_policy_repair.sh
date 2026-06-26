@@ -59,7 +59,14 @@ confirm() { $ASSUME_YES && return 0; read -r -p "$1 [y/N]: " answer; case "$answ
 run_action() {
   local description="$1"; shift
   ACTIONS=$((ACTIONS + 1)); log "$description"
-  if $DRY_RUN; then printf 'DRY-RUN:' >> "$LOG"; printf ' %q' "$@" >> "$LOG"; printf '\n' >> "$LOG"; return 0; fi
+  if $DRY_RUN; then
+    {
+      printf 'DRY-RUN:'
+      printf ' %q' "$@"
+      printf '\n'
+    } >> "$LOG"
+    return 0
+  fi
   if "$@" >> "$LOG" 2>&1; then log "SUCCESS: $description"; return 0; fi
   FAILURES=$((FAILURES + 1)); log "WARNING: $description failed"; return 1
 }
@@ -68,10 +75,10 @@ collect_state() {
   local destination="$1"
   {
     echo "Collected: $(date -Is)"
-    command -v getenforce >/dev/null 2>&1 && getenforce || true
-    command -v sestatus >/dev/null 2>&1 && sestatus || true
+    if command -v getenforce >/dev/null 2>&1; then getenforce || true; fi
+    if command -v sestatus >/dev/null 2>&1; then sestatus || true; fi
     echo
-    command -v aa-status >/dev/null 2>&1 && aa-status || true
+    if command -v aa-status >/dev/null 2>&1; then aa-status || true; fi
     echo
     systemctl status auditd --no-pager -l 2>/dev/null || true
     echo
